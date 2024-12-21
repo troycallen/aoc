@@ -13,11 +13,12 @@ for line in lines:
     if line == "":
         getting_rules = False
         continue
-    
+        
+    numbers = [int(i) for i in line.split('|' if getting_rules else ',')]
     if getting_rules:
-        rules.append([int(i) for i in line.split("|")])
+        rules.append(numbers)
     else:
-        updates.append([int(i) for i in line.split(",")])
+        updates.append(numbers)
 
 # Build dependency dictionary
 dependencies = {}
@@ -26,6 +27,7 @@ for rule in rules:
 
 # Process updates
 for update in updates:
+    # Check if order is valid
     valid = True
     for i, current in enumerate(update):
         if current in dependencies:
@@ -33,7 +35,15 @@ for update in updates:
                 valid = False
                 break
     
-    if valid:
-        total += update[len(update) // 2]
+    # Fix invalid orders
+    if not valid:
+        for i in range(len(update)):
+            for j in range(i + 1, len(update)):
+                if update[j] in dependencies:
+                    if update[i] in dependencies[update[j]]:
+                        update[i], update[j] = update[j], update[i]
+        
+        print(update)
+        total += update[len(update)//2]
 
 print(total)
